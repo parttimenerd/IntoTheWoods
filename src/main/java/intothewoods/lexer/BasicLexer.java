@@ -5,7 +5,8 @@ import java.io.InputStream;
 
 /**
  * Lexer turning an input stream into tokens.
- * This is the main lexer implementation.
+ *
+ * This is the main lexer implementation, it focuses on simplicity.
  */
 public class BasicLexer extends AbstractLexer {
 
@@ -108,6 +109,8 @@ public class BasicLexer extends AbstractLexer {
 				builder.append(getChar());
 			} else if (isCurrentChar('"')){
 				break;
+			} else if (isCurrentChar('\n')){
+				throw new LexerException("Strings mustn't contain new lines", currentLine, currentChar);
 			}
 		} while (!hasEnded);
 		char lastChar = getChar();
@@ -142,17 +145,22 @@ public class BasicLexer extends AbstractLexer {
 	 * Lexes the stream into a numeric token.
 	 *
 	 * @return lexed token
+	 * @throws intothewoods.lexer.LexerException syntax error
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseNumeric() throws IOException {
+	private Token parseNumeric() throws IOException, LexerException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		boolean containsDot = isCurrentChar('.');
+		boolean containsDigit = Character.isDigit(getChar());
 		do {
 			readChar();
 			if (Character.isDigit(getChar()) ||
 					(!containsDot && isCurrentChar('.'))) {
 				builder.append(getChar());
-				if (isCurrentChar('.')) {
+				if (containsDigit || Character.isDigit(getChar())) {
+					containsDigit = true;
+				}
+				if (containsDot || isCurrentChar('.')) {
 					containsDot = true;
 				}
 			} else {
@@ -162,12 +170,16 @@ public class BasicLexer extends AbstractLexer {
 		TokenType type;
 		if (containsDot || builder.charAt(0) == '.'){
 			type = TokenType.FLOAT_LITERAL;
-		} else if (isCurrentChar('b')){
-			type = TokenType.BYTE_LITERAL;
-			builder.append('b');
-			readChar();
+		} else if (containsDigit) {
+			if (isCurrentChar('b')) {
+				type = TokenType.BYTE_LITERAL;
+				builder.append('b');
+				readChar();
+			} else {
+				type = TokenType.INT_LITERAL;
+			}
 		} else {
-			type = TokenType.INT_LITERAL;
+			throw new LexerException("Invalid int or byte literal '" + builder.toString() + '\'', currentLine, currentColumn);
 		}
 		return new Token(type, builder.toString(), currentLine, currentColumn);
 	}

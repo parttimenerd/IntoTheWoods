@@ -141,6 +141,31 @@ public class BasicLexerTest {
 		expectToken("Failed to ignore whitespace", "   \r  \n  \t", TokenType.NEW_LINE, "\n");
 	}
 
+	@Test(expected = LexerException.class)
+	public void testInvalidStringLiteral() throws Exception {
+		runToEndOnInput("\"ABCD\"\"");
+		runToEndOnInput("\"ABCD\n\"");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidIntLiteral() throws Exception {
+		runToEndOnInput("--0");
+		runToEndOnInput("+");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidFloatLiteral() throws Exception {
+		runToEndOnInput("+.b");
+		runToEndOnInput("+-0.0");
+	}
+
+	private void runToEndOnInput(String str) throws Exception {
+		setInput(str);
+		while (lexer.getToken().type != TokenType.EOF){
+			lexer.nextToken();
+		}
+	}
+
 	private void setInput(String str) throws Exception {
 		lexer = new BasicLexer(new ByteArrayInputStream(str.getBytes()));
 	}
