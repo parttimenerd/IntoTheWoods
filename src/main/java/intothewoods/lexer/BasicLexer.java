@@ -87,7 +87,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.END_KEYWORD;
 				break;
 			default:
-				throw new LexerException("Unknown keyword \"" + tokenText + "\".", currentLine, currentColumn);
+				throw lexerException("Unknown keyword \"" + tokenText + "\".");
 		}
 		return new Token(type, tokenText, currentLine, currentColumn);
 	}
@@ -110,13 +110,13 @@ public class BasicLexer extends AbstractLexer {
 			} else if (isCurrentChar('"')){
 				break;
 			} else if (isCurrentChar('\n')){
-				throw new LexerException("Strings mustn't contain new lines", currentLine, currentChar);
+				throw lexerException("Strings mustn't contain new lines");
 			}
 		} while (!hasEnded);
 		char lastChar = getChar();
 		String str = builder.toString();
 		if (hasEnded && lastChar != '"') {
-			throw new LexerException("Error at end of string '" + str + '\'', currentLine, currentColumn + str.length());
+			throw lexerException("Error at end of string '" + str + '\'');
 		}
 		readChar();
 		return new Token(TokenType.STRING_LITERAL, str, currentLine, currentColumn);
@@ -150,25 +150,47 @@ public class BasicLexer extends AbstractLexer {
 	 */
 	private Token parseNumeric() throws IOException, LexerException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
-		boolean containsDot = isCurrentChar('.');
+		if (isCurrentChar('.')){
+			throw lexerException("Invalid float literal.");
+		}
+		boolean containsDot = false;
+		boolean containsExp = false;
 		boolean containsDigit = Character.isDigit(getChar());
 		do {
 			readChar();
 			if (Character.isDigit(getChar()) ||
-					(!containsDot && isCurrentChar('.'))) {
+					(!containsDot && isCurrentChar('.')) ||
+					(!containsExp && isCurrentChar('E'))) {
 				builder.append(getChar());
 				if (containsDigit || Character.isDigit(getChar())) {
 					containsDigit = true;
 				}
-				if (containsDot || isCurrentChar('.')) {
+				if (!containsDot && isCurrentChar('.') && containsDigit) {
 					containsDot = true;
+					containsDigit = false;
+				}
+				if (!containsExp && isCurrentChar('E') && containsDigit) {
+					containsExp = true;
+					readChar();
+					if (isCurrentChar('-') || isCurrentChar('+')){
+						builder.append(getChar());
+						containsDigit = false;
+					} else if (Character.isDigit(getChar())){
+						builder.append(getChar());
+						containsDigit = true;
+					} else {
+						throw lexerException("Invalid float literal '" + builder.toString() + '\'');
+					}
 				}
 			} else {
 				break;
 			}
 		} while (!hasEnded);
 		TokenType type;
-		if (containsDot || builder.charAt(0) == '.'){
+		if (!containsDigit){
+			throw lexerException("Invalid numeric literal '" + builder.toString() + '\'');
+		}
+		if (containsDot || containsExp){
 			type = TokenType.FLOAT_LITERAL;
 		} else if (containsDigit) {
 			if (isCurrentChar('b')) {
@@ -179,7 +201,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.INT_LITERAL;
 			}
 		} else {
-			throw new LexerException("Invalid int or byte literal '" + builder.toString() + '\'', currentLine, currentColumn);
+			throw lexerException("Invalid int or byte literal '" + builder.toString() + '\'');
 		}
 		return new Token(type, builder.toString(), currentLine, currentColumn);
 	}
@@ -255,7 +277,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.COLLON;
 				break;
 			default:
-				throw new LexerException("Illegal character '" + curChar + '"', currentLine, currentColumn);
+				throw lexerException("Illegal character '" + curChar + '"');
 		}
 		readChar();
 		return new Token(type, Character.toString(curChar), currentLine, currentColumn);

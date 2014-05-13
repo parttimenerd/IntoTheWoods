@@ -37,13 +37,16 @@ public class BasicLexerTest {
 
 	@Test
 	public void testFloatLiteral() throws Exception {
-		expectToken("Lexing float failed", "0.", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "0.0", TokenType.FLOAT_LITERAL);
 		expectToken("Lexing float failed", "0.567", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "-0.", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "-0.0", TokenType.FLOAT_LITERAL);
 		expectToken("Lexing float failed", "-4560.456", TokenType.FLOAT_LITERAL);
 		expectToken("Lexing float failed", "+5460.9", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "+.", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", ".", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "+08.09", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "+06E-90", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "+06E+90", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "-06E-0", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "06E+0", TokenType.FLOAT_LITERAL);
 	}
 
 	@Test
@@ -99,7 +102,7 @@ public class BasicLexerTest {
 
 	@Test
 	public void testFunctionCall() throws Exception {
-		setInput("test_t \"Hallo\", 34.3, -4b, \"Hallo \\\"\", true, .\n");
+		setInput("test_t \"Hallo\", 34.3, -4b, \"Hallo \\\"\", true, 0.0\n");
 		expectNextToken("Lexing name literal failed", TokenType.NAME, "test_t");
 		expectNextToken("Lexing string literal failed", TokenType.STRING_LITERAL, "\"Hallo\"");
 		expectNextToken("Lexing comma failed", TokenType.COMMA);
@@ -111,7 +114,7 @@ public class BasicLexerTest {
 		expectNextToken("Lexing comma failed", TokenType.COMMA);
 		expectNextToken("Lexing bool literal failed", TokenType.BOOL_LITERAL, "true");
 		expectNextToken("Lexing comma failed", TokenType.COMMA);
-		expectNextToken("Lexing short float literal failed", TokenType.FLOAT_LITERAL, ".");
+		expectNextToken("Lexing short float literal failed", TokenType.FLOAT_LITERAL, "0.0");
 		expectNextToken("Lexing line break failed", TokenType.NEW_LINE);
 		expectNextToken("Lexing end of file failed", TokenType.EOF);
 	}
@@ -136,7 +139,7 @@ public class BasicLexerTest {
 	@Test
 	public void testIgnoreWhitespace() throws Exception {
 		expectToken("Failed to ignore whitespace", "\t abcd  ", TokenType.NAME, "abcd");
-		expectToken("Failed to ignore whitespace", "  \t .  ", TokenType.FLOAT_LITERAL, ".");
+		expectToken("Failed to ignore whitespace", "  \t 0.0  ", TokenType.FLOAT_LITERAL, "0.0");
 		expectToken("Failed to ignore whitespace", "    abcd  \r", TokenType.NAME, "abcd");
 		expectToken("Failed to ignore whitespace", "   \r  \n  \t", TokenType.NEW_LINE, "\n");
 	}
@@ -157,6 +160,9 @@ public class BasicLexerTest {
 	public void testInvalidFloatLiteral() throws Exception {
 		runToEndOnInput("+.b");
 		runToEndOnInput("+-0.0");
+		runToEndOnInput(".0");
+		runToEndOnInput(".");
+		runToEndOnInput("0E");
 	}
 
 	private void runToEndOnInput(String str) throws Exception {

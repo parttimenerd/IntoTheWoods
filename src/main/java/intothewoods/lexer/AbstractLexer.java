@@ -57,4 +57,15 @@ public abstract class AbstractLexer {
 		return token;
 	}
 
+	/**
+	 * Create a new LexerException for the current line and column number.
+	 * This method is the best way to create a LexerException.
+	 *
+	 * @param message error message
+	 * @return new lexer exception
+	 */
+	protected LexerException lexerException(String message){
+		return new LexerException(message, currentLine, currentColumn);
+	}
+
 }
