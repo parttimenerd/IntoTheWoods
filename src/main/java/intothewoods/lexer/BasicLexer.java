@@ -7,64 +7,61 @@ import java.io.InputStream;
  * Lexer turning an input stream into tokens.
  * This is the main lexer implementation.
  */
-public class Lexer extends AbstractLexer {
+public class BasicLexer extends AbstractLexer {
 
-	private char currentChar = 0;
-	private int currentLine = 1;
-	private int currentColumn = -1;
-	private boolean hasEnded = false;
-
-	public Lexer(InputStream input) {
+	public BasicLexer(InputStream input) throws LexerException, IOException {
 		super(input);
 	}
 
 	/**
-	 * Capture the next token from the input stream and return it.
+	 * Capture the next token from the input stream, stores and returns it.
 	 *
 	 * @return next token or token of type EOF if there is no next token
-	 * @throws intothewoods.lexer.SyntaxException syntax error at the current input
+	 * @throws LexerException syntax error at the current input
+	 * @throws java.io.IOException io error from stream
 	 */
-	public Token nextToken() throws SyntaxException, IOException {
-		while (isChar(' ') || isChar('\t') || isChar('\r')) {
+	public Token nextToken() throws LexerException, IOException {
+		while (isCurrentChar(' ') || isCurrentChar('\t') || isCurrentChar('\r')) {
 			readChar();
 		}
 		if (hasEnded){
-			return new Token(TokenType.EOF, "", currentLine, currentColumn);
-		}
-		Token token;
-		if (isChar('\n')) {
-			token = new Token(TokenType.LINE_BREAK, "\n", currentLine, currentColumn);
+			token = new Token(TokenType.EOF, "", currentLine, currentColumn);
+		} else if (isCurrentChar('\n')) {
+			token = new Token(TokenType.NEW_LINE, "\n", currentLine, currentColumn);
 			currentLine++;
 			currentColumn = -1;
 			readChar();
-		} else if (isChar('_')) {
+		} else if (isCurrentChar('_')) {
 			token = parseKeyword();
-		} else if (isChar('"')) {
+		} else if (isCurrentChar('"')) {
 			token = parseString();
-		} else if (isChar('#')) {
+		} else if (isCurrentChar('#')) {
 			token = parseComment();
-		} else if (Character.isDigit(getChar()) || isChar('+') || isChar('-') || isChar('.')) {
+		} else if (Character.isDigit(getChar()) || isCurrentChar('+') || isCurrentChar('-') || isCurrentChar('.')) {
 			token = parseNumeric();
 		} else if (Character.isAlphabetic(getChar())) {
-			token = parseNameAndTypeAndBool();
+			token = parseAlphaNumeric();
 		} else {
-			token = parseOther();
+			token = parseSingleTokens();
 		}
 		return token;
 	}
 
 	/**
-	 * Parses the stream into a keyword token.
+	 * Lexes the stream into a keyword token.
 	 *
-	 * @return parsed token
-	 * @throws intothewoods.lexer.SyntaxException invalid keyword
+	 * @return lexed token
+	 * @throws LexerException invalid keyword
+	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseKeyword() throws SyntaxException, IOException {
+	private Token parseKeyword() throws LexerException, IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
 			if (Character.isLowerCase(getChar())) {
 				builder.append(getChar());
+			} else {
+				break;
 			}
 		} while (!hasEnded);
 		String tokenText = builder.toString();
@@ -89,70 +86,73 @@ public class Lexer extends AbstractLexer {
 				type = TokenType.END_KEYWORD;
 				break;
 			default:
-				throw new SyntaxException("Unknown keyword \"" + tokenText + "\".", currentLine, currentColumn);
+				throw new LexerException("Unknown keyword \"" + tokenText + "\".", currentLine, currentColumn);
 		}
 		return new Token(type, tokenText, currentLine, currentColumn);
 	}
 
 	/**
-	 * Parses the stream into a string token.
+	 * Lexes the stream into a string token.
 	 *
-	 * @return parsed token
-	 * @throws intothewoods.lexer.SyntaxException invalid number of unescaped hyphens (> 2)
+	 * @return lexed token
+	 * @throws LexerException invalid string literal
+	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseString() throws SyntaxException, IOException {
+	private Token parseString() throws LexerException, IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
 			builder.append(getChar());
-			if (isChar('\\')) {
+			if (isCurrentChar('\\')) {
 				readChar();
 				builder.append(getChar());
-				readChar();
-				builder.append(getChar());
+			} else if (isCurrentChar('"')){
+				break;
 			}
-		} while (!hasEnded && !isChar('"'));
+		} while (!hasEnded);
 		char lastChar = getChar();
 		String str = builder.toString();
 		if (hasEnded && lastChar != '"') {
-			throw new SyntaxException("Error at end of string '" + str + '\'', currentLine, currentColumn + str.length());
+			throw new LexerException("Error at end of string '" + str + '\'', currentLine, currentColumn + str.length());
 		}
 		readChar();
-		return new Token(TokenType.STRING, str, currentLine, currentColumn);
+		return new Token(TokenType.STRING_LITERAL, str, currentLine, currentColumn);
 	}
 
 	/**
-	 * Parses the stream into a comment token.
+	 * Lexes the stream into a comment token.
 	 *
-	 * @return parsed token
+	 * @return lexed token
+	 * @throws java.io.IOException io error from stream
 	 */
 	private Token parseComment() throws IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
-			if (!hasEnded && !isChar('\n') && !isChar('\r')) {
+			if (!hasEnded && !isCurrentChar('\n') && !isCurrentChar('\r')) {
 				builder.append(getChar());
+			} else {
+				break;
 			}
 		} while (!hasEnded);
 		return new Token(TokenType.COMMENT, builder.toString(), currentLine, currentColumn);
 	}
 
 	/**
-	 * Parses the stream into a comment token.
+	 * Lexes the stream into a numeric token.
 	 *
-	 * @return parsed token
+	 * @return lexed token
+	 * @throws java.io.IOException io error from stream
 	 */
 	private Token parseNumeric() throws IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
-		boolean containsDot = false;
+		boolean containsDot = isCurrentChar('.');
 		do {
 			readChar();
 			if (Character.isDigit(getChar()) ||
-					(builder.length() == 0 && (isChar('+') || isChar('-'))) ||
-					(!containsDot && isChar('.'))) {
+					(!containsDot && isCurrentChar('.'))) {
 				builder.append(getChar());
-
-				if (isChar('.')) {
+				if (isCurrentChar('.')) {
 					containsDot = true;
 				}
 			} else {
@@ -161,36 +161,34 @@ public class Lexer extends AbstractLexer {
 		} while (!hasEnded);
 		TokenType type;
 		if (containsDot || builder.charAt(0) == '.'){
-			type = TokenType.FLOAT;
-		} else if (isChar('b')){
-			type = TokenType.BYTE;
+			type = TokenType.FLOAT_LITERAL;
+		} else if (isCurrentChar('b')){
+			type = TokenType.BYTE_LITERAL;
 			builder.append('b');
 			readChar();
 		} else {
-			type = TokenType.INT;
+			type = TokenType.INT_LITERAL;
 		}
 		return new Token(type, builder.toString(), currentLine, currentColumn);
 	}
 
 	/**
-	 * Parses the stream into a name or bool token.
+	 * Lexes the stream into a name or bool token.
 	 *
-	 * @return parsed token
+	 * @return lexed token
+	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseNameAndTypeAndBool() throws IOException, SyntaxException {
+	private Token parseAlphaNumeric() throws IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
-			if (Character.isAlphabetic(getChar()) || (builder.length() > 0 && (Character.isDigit(getChar()) || isChar('_')))) {
+			if (Character.isAlphabetic(getChar()) || (Character.isDigit(getChar()) || isCurrentChar('_'))) {
 				builder.append(getChar());
 			} else {
 				break;
 			}
 		} while (!hasEnded);
-		if (builder.length() < 1){
-			throw new SyntaxException("Empty name is invalid, as well as the name \"!\"", currentLine, currentColumn);
-		}
-		if (isChar('!')){
+		if (isCurrentChar('!')){
 			builder.append(getChar());
 			readChar();
 		}
@@ -199,7 +197,7 @@ public class Lexer extends AbstractLexer {
 		switch (text){
 			case "true":
 			case "false":
-				type = TokenType.BOOL;
+				type = TokenType.BOOL_LITERAL;
 				break;
 			case "bool":
 			case "byte":
@@ -219,18 +217,21 @@ public class Lexer extends AbstractLexer {
 	}
 
 	/**
-	 * Parses the stream into a (left/right) parantheses, a comma or an equal sign token.
+	 * Lexes the stream into a (left/right) parenthesis, a comma, a collon or an equal sign token.
 	 *
-	 * @return parsed token
+	 * @return lexes token
+	 * @throws LexerException illegal character
+	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseOther() throws IOException {
-		TokenType type = TokenType.NONE;
-		switch (getChar()){
+	private Token parseSingleTokens() throws LexerException, IOException {
+		TokenType type;
+		char curChar = getChar();
+		switch (curChar){
 			case '(':
-				type = TokenType.LEFT_PARANTHESES;
+				type = TokenType.LEFT_PARENTHESIS;
 				break;
 			case ')':
-				type = TokenType.RIGHT_PARANTHESES;
+				type = TokenType.RIGHT_PARENTHESIS;
 				break;
 			case ',':
 				type = TokenType.COMMA;
@@ -238,25 +239,27 @@ public class Lexer extends AbstractLexer {
 			case '=':
 				type = TokenType.EQUAL_SIGN;
 				break;
+			case ':':
+				type = TokenType.COLLON;
+				break;
+			default:
+				throw new LexerException("Illegal character '" + curChar + '"', currentLine, currentColumn);
 		}
-		char otherChar = getChar();
 		readChar();
-		return new Token(type, Character.toString(otherChar), currentLine, currentColumn);
+		return new Token(type, Character.toString(curChar), currentLine, currentColumn);
 	}
 
 	/**
-	 * Read a new char from the input stream and return it. Set it as the current char.
-	 * @return new current char
+	 * Read a new char from the input stream and set it as the current char.
 	 * @throws IOException read error
 	 */
-	private char readChar() throws IOException {
+	private void readChar() throws IOException {
 		int codePoint = input.read();
 		currentColumn++;
 		if (codePoint == -1){
 			hasEnded = true;
 		}
 		currentChar = (char) codePoint;
-		return currentChar;
 	}
 
 	/**
@@ -274,7 +277,7 @@ public class Lexer extends AbstractLexer {
 	 * Checks whether or not the current char is the given char.
 	 * @throws IOException read error
 	 */
-	private boolean isChar(char otherChar) throws IOException {
+	private boolean isCurrentChar(char otherChar) throws IOException {
 		return getChar() == otherChar;
 	}
 }

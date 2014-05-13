@@ -2,16 +2,16 @@ package intothewoods.lexer;
 
 /**
  * Type of a token.
- * @see Language specification
+ * 
+ * See language specification.
  */
 public enum TokenType {
 
-	NONE,
-	BOOL,
-	BYTE,
-	INT,
-	FLOAT,
-	STRING,
+	BOOL_LITERAL,
+	BYTE_LITERAL,
+	INT_LITERAL,
+	FLOAT_LITERAL,
+	STRING_LITERAL,
 	NAME,
 	TYPE,
 	VOID,
@@ -22,11 +22,12 @@ public enum TokenType {
 	END_KEYWORD,
 	WHILE_KEYWORD,
 	COMMENT,
-	LEFT_PARANTHESES,
-	RIGHT_PARANTHESES,
+	LEFT_PARENTHESIS,
+	RIGHT_PARENTHESIS,
 	COMMA,
-	LINE_BREAK,
+	NEW_LINE,
 	EQUAL_SIGN,
+	COLLON,
 	EOF
 
 }

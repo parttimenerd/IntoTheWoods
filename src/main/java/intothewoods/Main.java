@@ -1,6 +1,7 @@
 package intothewoods;
 
-import intothewoods.lexer.Lexer;
+import intothewoods.lexer.BasicLexer;
+import intothewoods.lexer.LexerException;
 import intothewoods.lexer.Token;
 import intothewoods.lexer.TokenType;
 //import intothewoods.parser.BasicParser;
@@ -8,12 +9,10 @@ import intothewoods.lexer.TokenType;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 	    //Some testing code
 		/*BasicParser parser = new BasicParser();
 	    List<String> stringList = new ArrayList<>();
@@ -29,12 +28,12 @@ public class Main {
 	    } catch (SyntaxException e) {
 		    e.printStackTrace();
 	    }*/
-	    Lexer lexer = new Lexer(new ByteArrayInputStream(".".getBytes()));
+	    BasicLexer lexer = new BasicLexer(new ByteArrayInputStream(".".getBytes()));
 	    Token token;
 	    do {
 		    try {
 			    token = lexer.nextToken();
-		    } catch (IOException | intothewoods.lexer.SyntaxException ex){
+		    } catch (IOException | LexerException ex){
 			    System.err.println(ex);
 			    break;
 		    }

@@ -28,8 +28,9 @@ public class Token {
 		return "Token{" +
 				"type=" + type +
 				", text='" + text + '\'' +
-				", line=" + line +
-				", column=" + column +
+				", location=" + line +
+				'[' + (column - text.length()) + ',' +
+				column + ']' +
 				'}';
 	}
 

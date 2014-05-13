@@ -1,15 +1,15 @@
 package intothewoods.lexer;
 
 /**
- * Exception raised when the code contains a syntax error.
+ * Exception raised when the lexer spots a syntax error.
  */
-public class SyntaxException extends Exception {
+public class LexerException extends Exception {
 
     private final int line;
 	private final int column;
 
-    public SyntaxException(String message, int line, int column){
-        super("Error at " + line + '.' + column + ": " + message);
+    public LexerException(String message, int line, int column){
+        super("Error at " + line + '[' + column + "]: " + message);
         this.line = line;
 	    this.column = column;
     }
