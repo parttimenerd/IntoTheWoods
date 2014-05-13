@@ -3,8 +3,8 @@ package intothewoods;
 import intothewoods.lexer.Lexer;
 import intothewoods.lexer.Token;
 import intothewoods.lexer.TokenType;
-import intothewoods.parser.BasicParser;
-import intothewoods.parser.SyntaxException;
+//import intothewoods.parser.BasicParser;
+//import intothewoods.parser.SyntaxException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

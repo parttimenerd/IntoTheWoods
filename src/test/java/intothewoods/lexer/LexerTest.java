@@ -53,6 +53,7 @@ public class LexerTest {
 		expectToken("Parsing string failed", "\"\\\t \"", TokenType.STRING);
 		expectToken("Parsing string failed", "\" sdfkdfgl \\\" \"", TokenType.STRING);
 		expectToken("Parsing string failed", "\"\"", TokenType.STRING);
+		expectToken("Parsing string failed", "\"\\\"\\\"\"", TokenType.STRING);
 	}
 
 	@Test
@@ -114,6 +115,23 @@ public class LexerTest {
 		expectNextToken("Parsing line break failed", TokenType.LINE_BREAK);
 		expectNextToken("Parsing end of file failed", TokenType.EOF);
 	}
+
+    @Test
+    public void testFunctionComment() throws Exception {
+        setInput("#\n_function");
+		expectNextToken("Parsing comment failed", TokenType.COMMENT, "#");
+		expectNextToken("Parsing line break failed", TokenType.LINE_BREAK);
+		expectNextToken("Parsing function keyword failed", TokenType.FUNCTION_KEYWORD, "_function");
+		expectNextToken("Parsing end of file failed", TokenType.EOF);
+    }
+
+    @Test
+    public void testEndKeyword() throws Exception {
+        setInput("_end\n");
+		expectNextToken("Parsing end keyword failed", TokenType.END_KEYWORD, "_end");
+		expectNextToken("Parsing line break failed", TokenType.LINE_BREAK);
+		expectNextToken("Parsing end of file failed", TokenType.EOF);
+    }
 
 	@Test
 	public void testIgnoreWhitespace() throws Exception {
