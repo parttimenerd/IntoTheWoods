@@ -1,5 +1,7 @@
 package intothewoods.lexer;
 
+import intothewoods.common.TokenType;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -21,14 +23,14 @@ public class BasicLexer extends AbstractLexer {
 	 * @throws LexerException syntax error at the current input
 	 * @throws java.io.IOException io error from stream
 	 */
-	public Token nextToken() throws LexerException, IOException {
+	public LexerToken nextToken() throws LexerException, IOException {
 		while (isCurrentChar(' ') || isCurrentChar('\t') || isCurrentChar('\r')) {
 			readChar();
 		}
 		if (hasEnded){
-			token = new Token(TokenType.EOF, "", currentLine, currentColumn);
+			token = new LexerToken(TokenType.EOF, "", currentLine, currentColumn);
 		} else if (isCurrentChar('\n')) {
-			token = new Token(TokenType.NEW_LINE, "\n", currentLine, currentColumn);
+			token = new LexerToken(TokenType.NEW_LINE, "\n", currentLine, currentColumn);
 			currentLine++;
 			currentColumn = -1;
 			readChar();
@@ -55,7 +57,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @throws LexerException invalid keyword
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseKeyword() throws LexerException, IOException {
+	private LexerToken parseKeyword() throws LexerException, IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
@@ -89,7 +91,7 @@ public class BasicLexer extends AbstractLexer {
 			default:
 				throw lexerException("Unknown keyword \"" + tokenText + "\".");
 		}
-		return new Token(type, tokenText, currentLine, currentColumn);
+		return new LexerToken(type, tokenText, currentLine, currentColumn);
 	}
 
 	/**
@@ -99,7 +101,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @throws LexerException invalid string literal
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseString() throws LexerException, IOException {
+	private LexerToken parseString() throws LexerException, IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
@@ -119,7 +121,7 @@ public class BasicLexer extends AbstractLexer {
 			throw lexerException("Error at end of string '" + str + '\'');
 		}
 		readChar();
-		return new Token(TokenType.STRING_LITERAL, str, currentLine, currentColumn);
+		return new LexerToken(TokenType.STRING_LITERAL, str, currentLine, currentColumn);
 	}
 
 	/**
@@ -128,7 +130,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @return lexed token
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseComment() throws IOException {
+	private LexerToken parseComment() throws IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
@@ -138,7 +140,7 @@ public class BasicLexer extends AbstractLexer {
 				break;
 			}
 		} while (!hasEnded);
-		return new Token(TokenType.COMMENT, builder.toString(), currentLine, currentColumn);
+		return new LexerToken(TokenType.COMMENT, builder.toString(), currentLine, currentColumn);
 	}
 
 	/**
@@ -148,7 +150,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @throws intothewoods.lexer.LexerException syntax error
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseNumeric() throws IOException, LexerException {
+	private LexerToken parseNumeric() throws IOException, LexerException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		if (isCurrentChar('.')){
 			throw lexerException("Invalid float literal.");
@@ -162,7 +164,7 @@ public class BasicLexer extends AbstractLexer {
 					(!containsDot && isCurrentChar('.')) ||
 					(!containsExp && isCurrentChar('E'))) {
 				builder.append(getChar());
-				if (containsDigit || Character.isDigit(getChar())) {
+				if (!containsDigit && Character.isDigit(getChar())) {
 					containsDigit = true;
 				}
 				if (!containsDot && isCurrentChar('.') && containsDigit) {
@@ -188,11 +190,12 @@ public class BasicLexer extends AbstractLexer {
 		} while (!hasEnded);
 		TokenType type;
 		if (!containsDigit){
-			throw lexerException("Invalid numeric literal '" + builder.toString() + '\'');
+			throw lexerException("Invalid numeric literal '" + builder.toString() + "'." +
+					" It doesn't contain enough digits");
 		}
 		if (containsDot || containsExp){
 			type = TokenType.FLOAT_LITERAL;
-		} else if (containsDigit) {
+		} else {
 			if (isCurrentChar('b')) {
 				type = TokenType.BYTE_LITERAL;
 				builder.append('b');
@@ -200,10 +203,8 @@ public class BasicLexer extends AbstractLexer {
 			} else {
 				type = TokenType.INT_LITERAL;
 			}
-		} else {
-			throw lexerException("Invalid int or byte literal '" + builder.toString() + '\'');
 		}
-		return new Token(type, builder.toString(), currentLine, currentColumn);
+		return new LexerToken(type, builder.toString(), currentLine, currentColumn);
 	}
 
 	/**
@@ -212,7 +213,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @return lexed token
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseAlphaNumeric() throws IOException {
+	private LexerToken parseAlphaNumeric() throws IOException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		do {
 			readChar();
@@ -247,7 +248,7 @@ public class BasicLexer extends AbstractLexer {
 			default:
 				type = TokenType.NAME;
 		}
-		return new Token(type, text, currentLine, currentColumn);
+		return new LexerToken(type, text, currentLine, currentColumn);
 	}
 
 	/**
@@ -257,7 +258,7 @@ public class BasicLexer extends AbstractLexer {
 	 * @throws LexerException illegal character
 	 * @throws java.io.IOException io error from stream
 	 */
-	private Token parseSingleTokens() throws LexerException, IOException {
+	private LexerToken parseSingleTokens() throws LexerException, IOException {
 		TokenType type;
 		char curChar = getChar();
 		switch (curChar){
@@ -280,7 +281,7 @@ public class BasicLexer extends AbstractLexer {
 				throw lexerException("Illegal character '" + curChar + '"');
 		}
 		readChar();
-		return new Token(type, Character.toString(curChar), currentLine, currentColumn);
+		return new LexerToken(type, Character.toString(curChar), currentLine, currentColumn);
 	}
 
 	/**

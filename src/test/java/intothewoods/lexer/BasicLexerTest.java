@@ -1,5 +1,6 @@
 package intothewoods.lexer;
 
+import intothewoods.common.TokenType;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -167,7 +168,7 @@ public class BasicLexerTest {
 
 	private void runToEndOnInput(String str) throws Exception {
 		setInput(str);
-		while (lexer.getToken().type != TokenType.EOF){
+		while (lexer.getToken().getType() != TokenType.EOF){
 			lexer.nextToken();
 		}
 	}
@@ -177,15 +178,15 @@ public class BasicLexerTest {
 	}
 
 	private void expectNextToken(String message, TokenType expectedType) throws Exception {
-		Token token = lexer.getToken();
-		assertEquals(message + ", type", expectedType, token.type);
+		LexerToken token = lexer.getToken();
+		assertEquals(message + ", type", expectedType, token.getType());
 		lexer.nextToken();
 	}
 
 	private void expectNextToken(String message, TokenType expectedType, String expectedText) throws Exception {
-		Token token = lexer.getToken();
-		assertEquals(message + ", type", expectedType, token.type);
-		assertEquals(message + ", text", expectedText, token.text);
+		LexerToken token = lexer.getToken();
+		assertEquals(message + ", type", expectedType, token.getType());
+		assertEquals(message + ", text", expectedText, token.getText());
 		lexer.nextToken();
 	}
 
@@ -201,9 +202,9 @@ public class BasicLexerTest {
 	*/
 	private void expectToken(String message, String input, TokenType expectedType, String expectedText) throws Exception {
 		setInput(input);
-		Token token = lexer.getToken();
-		assertEquals(message + ", type", expectedType, token.type);
-		assertEquals(message + ", text", expectedText, token.text);
-		assertEquals(message + ", more tokens than expected", TokenType.EOF.toString(), lexer.nextToken().type.toString());
+		LexerToken token = lexer.getToken();
+		assertEquals(message + ", type", expectedType, token.getType());
+		assertEquals(message + ", text", expectedText, token.getText());
+		assertEquals(message + ", more tokens than expected", TokenType.EOF.toString(), lexer.nextToken().getType().toString());
 	}
 }

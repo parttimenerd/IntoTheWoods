@@ -1,4 +1,4 @@
-package intothewoods.lexer;
+package intothewoods.common;
 
 /**
  * Type of a token.
@@ -28,6 +28,7 @@ public enum TokenType {
 	NEW_LINE,
 	EQUAL_SIGN,
 	COLLON,
-	EOF
+	EOF,
+	NIL
 
 }

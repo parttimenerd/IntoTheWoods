@@ -1,9 +1,9 @@
 package intothewoods;
 
+import intothewoods.common.TokenType;
 import intothewoods.lexer.BasicLexer;
 import intothewoods.lexer.LexerException;
-import intothewoods.lexer.Token;
-import intothewoods.lexer.TokenType;
+import intothewoods.lexer.LexerToken;
 //import intothewoods.parser.BasicParser;
 //import intothewoods.parser.SyntaxException;
 
@@ -29,7 +29,7 @@ public class Main {
 		    e.printStackTrace();
 	    }*/
 	    BasicLexer lexer = new BasicLexer(new ByteArrayInputStream(".".getBytes()));
-	    Token token;
+	    LexerToken token;
 	    do {
 		    try {
 			    token = lexer.nextToken();
@@ -38,6 +38,6 @@ public class Main {
 			    break;
 		    }
 		    System.out.println(token);
-	    } while(token.type != TokenType.EOF);
+	    } while(token.getType() != TokenType.EOF);
     }
 }

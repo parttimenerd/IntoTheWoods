@@ -22,7 +22,7 @@ public abstract class AbstractLexer {
 	protected int currentColumn;
 	protected boolean hasEnded;
 	protected final InputStream input;
-	protected Token token;
+	protected LexerToken token;
 
 	/**
 	 * Initializes a lexer reading from the given stream.
@@ -47,13 +47,13 @@ public abstract class AbstractLexer {
 	 * @throws LexerException syntax error
 	 * @throws java.io.IOException io error from stream
 	 */
-	public abstract Token nextToken() throws LexerException, IOException;
+	public abstract LexerToken nextToken() throws LexerException, IOException;
 
 	/**
 	 * Return the current token.
 	 * @return current token
 	 */
-	public Token getToken(){
+	public LexerToken getToken(){
 		return token;
 	}
 
