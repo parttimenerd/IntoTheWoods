@@ -40,6 +40,19 @@ public class ASTNode {
 	}
 
 	/**
+	 * Initialize an imaginary node with the given type and the given children.
+	 * @param type given type
+	 * @param children given children
+	 */
+	public ASTNode(TokenType type, ASTNode... children){
+		this.token = new Token(type);
+		this.children = new ArrayList<>();
+		for (ASTNode node : children){
+			this.children.add(node);
+		}
+	}
+
+	/**
 	 * Return the type of this node.
 	 * @return type of this node
 	 */
@@ -121,12 +134,12 @@ public class ASTNode {
 	 */
 	public String toStringTree(){
 		if (isLeaf()){
-			return toString();
+			return toStringTreeNode();
 		}
 		StringBuilder builder = new StringBuilder();
 		if (!hasType(TokenType.NIL)){
-			builder.append(')');
-			builder.append(toString());
+			builder.append('(');
+			builder.append(toStringTreeNode());
 			builder.append(' ');
 		}
 		for (int i = 0; i < children.size(); i++){
@@ -139,5 +152,12 @@ public class ASTNode {
 			builder.append(')');
 		}
 		return builder.toString();
+	}
+
+	private String toStringTreeNode(){
+		if (token.getText() == ""){
+			return token.getType().toString();
+		}
+		return token.getText();
 	}
 }

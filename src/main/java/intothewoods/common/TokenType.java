@@ -29,6 +29,9 @@ public enum TokenType {
 	EQUAL_SIGN,
 	COLLON,
 	EOF,
-	NIL
+
+	/* Types of imaginary tokens */
+	NIL,
+	LITERAL
 
 }
