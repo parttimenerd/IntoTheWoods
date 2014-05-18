@@ -89,7 +89,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.END_KEYWORD;
 				break;
 			default:
-				throw lexerException("Unknown keyword \"" + tokenText + "\".");
+				throw createLexerException("Unknown keyword \"" + tokenText + "\".");
 		}
 		return new LexerToken(type, tokenText, currentLine, currentColumn);
 	}
@@ -112,13 +112,13 @@ public class BasicLexer extends AbstractLexer {
 			} else if (isCurrentChar('"')){
 				break;
 			} else if (isCurrentChar('\n')){
-				throw lexerException("Strings mustn't contain new lines");
+				throw createLexerException("Strings mustn't contain new lines");
 			}
 		} while (!hasEnded);
 		char lastChar = getChar();
 		String str = builder.toString();
 		if (hasEnded && lastChar != '"') {
-			throw lexerException("Error at end of string '" + str + '\'');
+			throw createLexerException("Error at end of string '" + str + '\'');
 		}
 		readChar();
 		return new LexerToken(TokenType.STRING_LITERAL, str, currentLine, currentColumn);
@@ -153,7 +153,7 @@ public class BasicLexer extends AbstractLexer {
 	private LexerToken parseNumeric() throws IOException, LexerException {
 		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
 		if (isCurrentChar('.')){
-			throw lexerException("Invalid float literal.");
+			throw createLexerException("Invalid float literal.");
 		}
 		boolean containsDot = false;
 		boolean containsExp = false;
@@ -181,7 +181,7 @@ public class BasicLexer extends AbstractLexer {
 						builder.append(getChar());
 						containsDigit = true;
 					} else {
-						throw lexerException("Invalid float literal '" + builder.toString() + '\'');
+						throw createLexerException("Invalid float literal '" + builder + '\'');
 					}
 				}
 			} else {
@@ -190,7 +190,7 @@ public class BasicLexer extends AbstractLexer {
 		} while (!hasEnded);
 		TokenType type;
 		if (!containsDigit){
-			throw lexerException("Invalid numeric literal '" + builder.toString() + "'." +
+			throw createLexerException("Invalid numeric literal '" + builder + "'." +
 					" It doesn't contain enough digits");
 		}
 		if (containsDot || containsExp){
@@ -252,7 +252,7 @@ public class BasicLexer extends AbstractLexer {
 	}
 
 	/**
-	 * Lexes the stream into a (left/right) parenthesis, a comma, a collon or an equal sign token.
+	 * Lexes the stream into a (left/right) parenthesis, a comma, a colon or an equal sign token.
 	 *
 	 * @return lexes token
 	 * @throws LexerException illegal character
@@ -275,10 +275,10 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.EQUAL_SIGN;
 				break;
 			case ':':
-				type = TokenType.COLLON;
+				type = TokenType.COLON;
 				break;
 			default:
-				throw lexerException("Illegal character '" + curChar + '"');
+				throw createLexerException("Illegal character '" + curChar + '"');
 		}
 		readChar();
 		return new LexerToken(type, Character.toString(curChar), currentLine, currentColumn);

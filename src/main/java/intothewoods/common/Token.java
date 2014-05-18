@@ -7,12 +7,12 @@ public class Token {
 	/**
 	 * The type of this token.
 	 */
-	protected TokenType type;
+	protected final TokenType type;
 
 	/**
 	 * The text representing this token or an empty string if it's an imaginary token.
 	 */
-	protected String text;
+	protected final String text;
 
 	/**
 	 * Initialize a new token with the given type and the given text.
@@ -37,7 +37,7 @@ public class Token {
 	 * Initialize a new NIL token.
 	 */
 	public Token(){
-		this.type = TokenType.NIL;
+		this(TokenType.NIL, "");
 	}
 
 	@Override
@@ -60,6 +60,15 @@ public class Token {
 	 */
 	public boolean hasType(TokenType type){
 		return this.type == type;
+	}
+
+	/**
+	 * Checks whether or not this token has the given type.
+	 * @param type given type
+	 * @return does this token have not the given type?
+	 */
+	public boolean hasNotType(TokenType type){
+		return this.type != type;
 	}
 
 	/**

@@ -55,4 +55,16 @@ public class LexerToken extends Token {
 	public int getColumn() {
 		return column;
 	}
+
+	/**
+	 * Checks whether or not this token represents a literal.
+	 * @return does this token represent a literal?
+	 */
+	public boolean isLiteral(){
+		return type == TokenType.BOOL_LITERAL ||
+				type == TokenType.BYTE_LITERAL ||
+				type == TokenType.INT_LITERAL ||
+				type == TokenType.FLOAT_LITERAL ||
+				type == TokenType.STRING_LITERAL;
+	}
 }

@@ -10,7 +10,8 @@ public class ParserException extends Exception {
 	private final LexerToken token;
 
 	public ParserException(String message, LexerToken token) {
-		super(message);
+		super("Syntax error at token '" + token.getText() + "' in line " + token.getLine() +
+				'[' + token.getColumn() + "]: " + message);
 		this.token = token;
 	}
 

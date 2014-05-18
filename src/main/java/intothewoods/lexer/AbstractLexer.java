@@ -26,6 +26,7 @@ public abstract class AbstractLexer {
 
 	/**
 	 * Initializes a lexer reading from the given stream.
+	 *
 	 * Reads the first token from the stream.
 	 *
 	 * @param input given input stream
@@ -43,6 +44,7 @@ public abstract class AbstractLexer {
 
 	/**
 	 * Capture the next token from the input stream, stores and returns it.
+	 *
 	 * @return next token or token of type EOF if there is no next token
 	 * @throws LexerException syntax error
 	 * @throws java.io.IOException io error from stream
@@ -64,7 +66,7 @@ public abstract class AbstractLexer {
 	 * @param message error message
 	 * @return new lexer exception
 	 */
-	protected LexerException lexerException(String message){
+	protected LexerException createLexerException(String message){
 		return new LexerException(message, currentLine, currentColumn);
 	}
 

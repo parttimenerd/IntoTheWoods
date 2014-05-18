@@ -1,22 +1,23 @@
 package intothewoods.parser;
 
-import intothewoods.common.TokenType;
 import intothewoods.common.Token;
-import intothewoods.lexer.LexerToken;
+import intothewoods.common.TokenType;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
- * Simple homogenous AST (Abstract Syntax Tree).
+ * Simple homogeneous AST (Abstract Syntax Tree).
  */
-public class ASTNode {
+public class ASTNode implements Iterable<ASTNode> {
 
 	private Token token;
 	private List<ASTNode> children;
 
 	/**
-	 * Empty contructor for making nil rooted trees.
+	 * Empty constructor for making nil rooted trees.
 	 */
 	public ASTNode(){
 		this.token = new Token(TokenType.NIL);
@@ -47,9 +48,7 @@ public class ASTNode {
 	public ASTNode(TokenType type, ASTNode... children){
 		this.token = new Token(type);
 		this.children = new ArrayList<>();
-		for (ASTNode node : children){
-			this.children.add(node);
-		}
+		Collections.addAll(this.children, children);
 	}
 
 	/**
@@ -70,6 +69,15 @@ public class ASTNode {
 	}
 
 	/**
+	 * Checks whether or not this node has the given type.
+	 * @param type given type
+	 * @return does this node have not the given type?
+	 */
+	public boolean hasNotType(TokenType type){
+		return token.getType() != type;
+	}
+
+	/**
 	 * Add the given child to this node.
 	 * @param newChild given child
 	 */
@@ -81,14 +89,34 @@ public class ASTNode {
 	}
 
 	/**
+	 * Add the given children to this node.
+	 * @param newChildren given child
+	 */
+	public void addChildren(ASTNode... newChildren){
+		for (ASTNode child : newChildren){
+			addChild(child);
+		}
+	}
+
+	/**
 	 * Add the given token as a child to this node.
-	 * @param newChild given child
+	 * @param newChild given token
 	 */
 	public void addChild(Token newChild){
 		if (children == null){
 			children = new ArrayList<>();
 		}
 		children.add(new ASTNode(newChild));
+	}
+
+	/**
+	 * Add the given token as children to this node.
+	 * @param newChildren given token
+	 */
+	public void addChildren(Token... newChildren){
+		for (Token child : newChildren){
+			addChild(child);
+		}
 	}
 
 	/**
@@ -123,6 +151,18 @@ public class ASTNode {
 		return children.get(index);
 	}
 
+	/**
+	 * Returns the last child.
+	 *
+	 * @return last child
+	 */
+	public ASTNode getLastChild(){
+		if (children == null){
+			children = new ArrayList<>();
+		}
+		return children.get(children.size() - 1);
+	}
+
 	@Override
 	public String toString(){
 		return token.toString();
@@ -137,7 +177,7 @@ public class ASTNode {
 			return toStringTreeNode();
 		}
 		StringBuilder builder = new StringBuilder();
-		if (!hasType(TokenType.NIL)){
+		if (hasNotType(TokenType.NIL)){
 			builder.append('(');
 			builder.append(toStringTreeNode());
 			builder.append(' ');
@@ -148,16 +188,29 @@ public class ASTNode {
 			}
 			builder.append(children.get(i).toStringTree());
 		}
-		if (!hasType(TokenType.NIL)){
+		if (hasNotType(TokenType.NIL)){
 			builder.append(')');
 		}
 		return builder.toString();
 	}
 
 	private String toStringTreeNode(){
-		if (token.getText() == ""){
+		if (token.getText().isEmpty()){
 			return token.getType().toString();
 		}
 		return token.getText();
 	}
+
+    @Override
+    public Iterator<ASTNode> iterator() {
+        return Collections.unmodifiableList(children).iterator();
+    }
+
+    /**
+	 * Return the text of the inherited token.
+     * @return text of the inherited token.
+     */
+    public String getText() {
+        return token.getText();
+    }
 }
