@@ -152,6 +152,11 @@ public class BasicLexerTest {
 	}
 
 	@Test(expected = LexerException.class)
+	public void testInvalidStringLiteral2() throws Exception {
+		runToEndOnInput("\"\\\n\"");
+	}
+
+	@Test(expected = LexerException.class)
 	public void testInvalidIntLiteral() throws Exception {
 		runToEndOnInput("--0");
 		runToEndOnInput("+");
