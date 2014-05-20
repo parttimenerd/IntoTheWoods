@@ -5,6 +5,7 @@ import intothewoods.lexer.BasicLexer;
 import intothewoods.lexer.LexerToken;
 import junit.framework.TestCase;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 
@@ -13,7 +14,7 @@ import java.io.ByteArrayInputStream;
  *
  * It assumes that the BasicLexer and the ASTNode class work correctly.
  */
-public class BasicParserTest extends TestCase {
+public class BasicParserTest {
 
 	private BasicParser parser;
 
@@ -41,8 +42,12 @@ public class BasicParserTest extends TestCase {
 		assertCurrentLineTypeEquals("Parsing line failed", "_while abc\n_end", TokenType.LOOP);
 		assertCurrentLineTypeEquals("Parsing line failed", "abc = a", TokenType.VARIABLE_ASSIGNMENT);
 		assertCurrentLineTypeEquals("Parsing line failed", "abc 3", TokenType.FUNCTION_CALL);
+		assertCurrentLineTypeEquals("Parsing line failed", "abc", TokenType.FUNCTION_CALL);
 		assertCurrentLineTypeEquals("Parsing line failed", "int abc = 3", TokenType.VARIABLE_DECLARATION);
+		assertCurrentLineTypeEquals("Parsing line failed", "int abc = q", TokenType.VARIABLE_DECLARATION);
 		assertCurrentLineTypeEquals("Parsing line failed", "_return", TokenType.RETURN_STATEMENT);
+		assertCurrentLineTypeEquals("Parsing line failed", "_return 3b", TokenType.RETURN_STATEMENT);
+		assertCurrentLineTypeEquals("Parsing line failed", "_return ab", TokenType.RETURN_STATEMENT);
 		assertCurrentLineTypeEquals("Parsing line failed", "#abcd", TokenType.COMMENT);
 	}
 
@@ -246,6 +251,89 @@ public class BasicParserTest extends TestCase {
 		assertEquals("Parsing name value failed, text", "name", node.getText());
     }
 
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader1() throws Exception {
+        setInput("_function void main : void q\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader2() throws Exception {
+        setInput("_function void main e int q\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader3() throws Exception {
+        setInput("_function void main :\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader4() throws Exception {
+        setInput("_function void main : int 2\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader5() throws Exception {
+        setInput("_function void main : int q bool w\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader6() throws Exception {
+        setInput("_function void main : int q, bool w ,\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader7() throws Exception {
+        setInput("_function void main : int q error int w\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader8() throws Exception {
+        setInput("_function qwxs main\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalFunctionHeader9() throws Exception {
+        setInput("_function int 23\n");
+        parser.parseFunctionHeader();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testNoReturnStatement() throws Exception {
+        setInput("_function int main\n _end");
+        parser.parseFunctionDeclaration();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIfWithoutEnd() throws Exception {
+        setInput("_if true");
+        parser.parseCondition();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalIfCondition() throws Exception {
+        setInput("_if _if\n_end");
+        parser.parseCondition();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testWhileWithoutEnd() throws Exception {
+        setInput("_while true");
+        parser.parseLoop();
+    }
+
+    @Test(expected = ParserException.class)
+    public void testIllegalWhileCondition() throws Exception {
+        setInput("_while _if\n_end");
+        parser.parseLoop();
+    }
 
     private void setInput(String input) throws Exception {
 		BasicLexer lexer = new BasicLexer(new ByteArrayInputStream(input.getBytes()));
