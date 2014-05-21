@@ -54,7 +54,6 @@ public class BasicLexerTest {
 	public void testStringLiteral() throws Exception {
 		expectToken("Lexing string failed", "\"abc \"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\"\\\" \"", TokenType.STRING_LITERAL);
-		expectToken("Lexing string failed", "\"\\\t \"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\" sdfkdfgl \\\" \"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\"\"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\"\\\"\\\"\"", TokenType.STRING_LITERAL);
@@ -154,6 +153,11 @@ public class BasicLexerTest {
 	@Test(expected = LexerException.class)
 	public void testInvalidStringLiteral2() throws Exception {
 		runToEndOnInput("\"\\\n\"");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidStringLiteral3() throws Exception {
+		runToEndOnInput("\"\\");
 	}
 
 	@Test(expected = LexerException.class)

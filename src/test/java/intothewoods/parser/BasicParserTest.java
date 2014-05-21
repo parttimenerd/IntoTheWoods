@@ -3,11 +3,11 @@ package intothewoods.parser;
 import intothewoods.common.TokenType;
 import intothewoods.lexer.BasicLexer;
 import intothewoods.lexer.LexerToken;
-import junit.framework.TestCase;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the BasicParser.
@@ -303,12 +303,6 @@ public class BasicParserTest {
     public void testIllegalFunctionHeader9() throws Exception {
         setInput("_function int 23\n");
         parser.parseFunctionHeader();
-    }
-
-    @Test(expected = ParserException.class)
-    public void testNoReturnStatement() throws Exception {
-        setInput("_function int main\n _end");
-        parser.parseFunctionDeclaration();
     }
 
     @Test(expected = ParserException.class)

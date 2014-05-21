@@ -42,7 +42,7 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return "Token{" + type + '}';
+		return "Token{" + type + ':' + text + '}';
 	}
 
 	/**

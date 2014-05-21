@@ -30,7 +30,7 @@ public enum TokenType {
 	COLON,
 	EOF,
 
-	/* Types of imaginary tokens */
+	/* Types of tokens only used by the parser (imaginary tokens) */
 	NIL,
 	VALUE,
 	WHOLE_FILE,

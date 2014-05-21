@@ -82,9 +82,6 @@ public class BasicParser extends AbstractParser {
 	 * @throws java.io.IOException an input error occurred in the lexer
 	 */
 	protected ASTNode parseCurrentLine() throws ParserException, LexerException, IOException {
-		if (currentLine.isEmpty()){
-			return new ASTNode(TokenType.NIL);
-		}
 		ASTNode node;
 		LexerToken first = currentLine.get(0);
 		switch (first.getType()){
@@ -119,6 +116,8 @@ public class BasicParser extends AbstractParser {
 	/**
 	 * Parses the current line as a variable declaration.
 	 *
+	 * The first token of the current line has to be a TYPE token.
+	 *
 	 * @return VARIABLE_DECLARATION AST node with the type token, the name token and the value token as children.
 	 * @throws ParserException parser spots a syntax error
 	 */
@@ -127,12 +126,9 @@ public class BasicParser extends AbstractParser {
 			throw createParseException("Expected variable declaration");
 		}
 		LexerToken typeToken = currentLine.get(0);
-		if (typeToken.hasNotType(TokenType.TYPE)){
-			throw createParseException("Expected type name at start of variable declaration", typeToken);
-		}
 		LexerToken nameToken = currentLine.get(1);
 		if (nameToken.hasNotType(TokenType.NAME)){
-			throw createParseException("Expected variable name in variable declaration", typeToken);
+			throw createParseException("Expected variable name", typeToken);
 		}
 		if (currentLine.get(2).hasNotType(TokenType.EQUAL_SIGN)){
 			throw createParseException("Expected '=' in variable declaration", currentLine.get(2));
@@ -147,6 +143,8 @@ public class BasicParser extends AbstractParser {
 	/**
 	 * Parses the current line as a variable assignment.
 	 *
+	 * The first token of the current line has to be a NAME token.
+	 *
 	 * @return VARIABLE_ASSIGNMENT AST node with the name token and the value token as children.
 	 * @throws ParserException parser spots a syntax error
 	 */
@@ -155,9 +153,6 @@ public class BasicParser extends AbstractParser {
 			throw createParseException("Expected assignment");
 		}
 		LexerToken nameToken = currentLine.get(0);
-		if (nameToken.hasNotType(TokenType.NAME)){
-			throw createParseException("Expected variable name in variable assignment", nameToken);
-		}
 		if (currentLine.get(1).hasNotType(TokenType.EQUAL_SIGN)){
 			throw createParseException("Expected '=' in variable assignment", currentLine.get(1));
 		}
@@ -195,6 +190,7 @@ public class BasicParser extends AbstractParser {
 	 *
 	 * The AST node has the type token, the name token and the PARAMETER_DECL_LIST node as its children.
 	 * The last node (PARAMETER_DECL_LIST) is omitted, if the function hasn't any parameters.
+	 * The first token of the current line has to be a FUNCTION_KEYWORD token.
 	 *
 	 * @return AST node
 	 * @throws ParserException parser spots a syntax error
@@ -202,9 +198,6 @@ public class BasicParser extends AbstractParser {
 	protected ASTNode parseFunctionHeader() throws ParserException {
 		if (currentLine.size() < 3){
 			throw createParseException("Expected function header");
-		}
-		if (currentLine.get(0).hasNotType(TokenType.FUNCTION_KEYWORD)){
-			throw createParseException("Expected function keyword");
 		}
 		LexerToken typeToken = currentLine.get(1);
 		if (typeToken.hasNotType(TokenType.TYPE) && typeToken.hasNotType(TokenType.VOID)){
@@ -235,13 +228,47 @@ public class BasicParser extends AbstractParser {
 	 */
 	private ASTNode parseParameterDeclarationList() throws ParserException {
 		ASTNode parameters = new ASTNode(TokenType.PARAMETER_DECL_LIST);
-		if (currentLine.size() < 3 || (currentLine.size() - 7) % 3 == 0){
+		if (currentLine.size() < 3){
 			throw createParseException("Expected function header");
 		}
-		for (int i = 3; i < currentLine.size(); i += 3){
+		if (currentLine.size() == 3){
+			return parameters;
+		}
+		if (currentLine.size() < 6){
+			throw createParseException("Expected parameter declarations", currentLine.get(3));
+		}
+		int i = 3;
+		int paramNumber = 1;
+		while (true){
+			LexerToken lastOfLine = currentLine.get(currentLine.size() - 1);
+			if (currentLine.size() <= i){
+				throw createParseException("Expected declaration of parameter no. " + paramNumber, lastOfLine);
+			}
+			if (i == 3 && currentLine.get(i).hasNotType(TokenType.COLON)){
+				throw createParseException("Expected ':' and parameter declarations", currentLine.get(i));
+			}
+			if (i != 3 && currentLine.get(i).hasNotType(TokenType.COMMA)) {
+				throw createParseException("Expected ',' and parameter declaration", currentLine.get(i));
+			}
+			if (currentLine.size() <= i + 1){
+				throw createParseException("Expected type of parameter no. " + paramNumber, lastOfLine);
+			}
+			if (currentLine.get(i + 1).hasNotType(TokenType.TYPE)){
+				throw createParseException("Expected type of parameter no. " + paramNumber, currentLine.get(i + 1));
+			}
+			if (currentLine.size() <= i + 2){
+				throw createParseException("Expected name of parameter no. " + paramNumber, lastOfLine);
+			}
+			if (currentLine.get(i + 2).hasNotType(TokenType.NAME)){
+				throw createParseException("Expected name of parameter no. " + paramNumber, currentLine.get(i + 2));
+			}
 			ASTNode parameter = new ASTNode(TokenType.PARAMETER_DECL);
 			parameter.addChildren(currentLine.get(i + 1), currentLine.get(i + 2));
 			parameters.addChild(parameter);
+			if (currentLine.size() <= i + 3){
+				break;
+			}
+			i += 3;
 		}
 		return parameters;
 	}
@@ -249,12 +276,14 @@ public class BasicParser extends AbstractParser {
 	/**
 	 * Parses the current line as a function call.
 	 *
+	 * The first token of the current line has to be a NAME token.
+	 *
 	 * @return FUNCTION_CALL AST node with the name token and the parameter VALUE nodes as its children.
 	 * @throws ParserException parser spots a syntax error
 	 */
 	protected ASTNode parseFunctionCall() throws ParserException {
 		ASTNode node = new ASTNode(TokenType.FUNCTION_CALL);
-		if (currentLine.isEmpty() || currentLine.get(0).hasNotType(TokenType.NAME)){
+		if (currentLine.isEmpty()){
 			throw createParseException("Expected function call");
 		}
 		node.addChild(currentLine.get(0));
@@ -267,15 +296,14 @@ public class BasicParser extends AbstractParser {
 	/**
 	 * Parses the current line as a return statement.
 	 *
+	 * The first token of the current line has to be a RETURN_KEYWORD token.
+	 *
 	 * @return RETURN AST node with the return value (VALUE node) as its token
 	 * @throws ParserException parser spots a syntax error
 	 */
 	protected ASTNode parseReturnStatement() throws ParserException {
 		if (currentLine.isEmpty() || currentLine.size() > 2){
 			throw createParseException("Expected return statement");
-		}
-		if (currentLine.get(0).hasNotType(TokenType.RETURN_KEYWORD)){
-			throw createParseException("Expected return keyword");
 		}
 		ASTNode node = new ASTNode(TokenType.RETURN_STATEMENT);
 		if (currentLine.size() == 2) {
@@ -289,6 +317,7 @@ public class BasicParser extends AbstractParser {
 	 * Parses the current line (and the following) as a loop into an AST node.
 	 *
 	 * The AST node has the loop parameter VALUE node and the CODE_BLOCK node as its children.
+	 * The first token of the current line has to be a WHILE_KEYWORD token.
 	 *
 	 * @return AST node
 	 * @throws ParserException parser spots a syntax error
@@ -296,7 +325,7 @@ public class BasicParser extends AbstractParser {
 	 * @throws java.io.IOException an input error occurred in the lexer
 	 */
 	protected ASTNode parseLoop() throws ParserException, LexerException, IOException {
-		if (currentLine.size() != 2 || currentLine.get(0).hasNotType(TokenType.WHILE_KEYWORD)){
+		if (currentLine.size() != 2){
 			throw createParseException("Expected loop");
 		}
 		ASTNode loop = new ASTNode(TokenType.LOOP);
@@ -316,6 +345,7 @@ public class BasicParser extends AbstractParser {
 	 *
 	 * The AST node has the loop parameter VALUE node, the "if" CODE_BLOCK and
 	 * the "else" CODE_BLOCK node as its children.
+	 * Expects the first token of the current line to be an IF_KEYWORD token.
 	 *
 	 * @return AST node
 	 * @throws ParserException parser spots a syntax error
@@ -323,8 +353,8 @@ public class BasicParser extends AbstractParser {
 	 * @throws java.io.IOException an input error occurred in the lexer
 	 */
 	protected ASTNode parseCondition() throws ParserException, LexerException, IOException {
-		if (currentLine.size() != 2 || currentLine.get(0).hasNotType(TokenType.IF_KEYWORD)){
-			throw createParseException("Expected loop");
+		if (currentLine.size() != 2){
+			throw createParseException("Expected condition");
 		}
 		ASTNode condition = new ASTNode(TokenType.CONDITION);
 		ASTNode parameter = parseTokenAsValue(currentLine.get(1));
@@ -366,7 +396,7 @@ public class BasicParser extends AbstractParser {
 	 * @return does the the current line not only contains the end keyword?
 	 */
 	private boolean isNotEndLine(){
-		return !hasLineSingleTokenWithType(TokenType.END_KEYWORD);
+		return !isSingleTokenLine(TokenType.END_KEYWORD);
 	}
 
 	/**
@@ -374,7 +404,7 @@ public class BasicParser extends AbstractParser {
 	 * @return does the the current line only contain the else keyword?
 	 */
 	private boolean isElseLine(){
-		return hasLineSingleTokenWithType(TokenType.ELSE_KEYWORD);
+		return isSingleTokenLine(TokenType.ELSE_KEYWORD);
 	}
 
 	/**
@@ -403,19 +433,19 @@ public class BasicParser extends AbstractParser {
 		}
 	}
 
-	private boolean hasLineSingleTokenWithType(TokenType type){
+	private boolean isSingleTokenLine(TokenType type){
 		return currentLine.size() == 1 && currentLine.get(0).hasType(type);
 	}
 
 	private ParserException createParseException(String message, LexerToken problematicToken){
-		return new ParserException(message, problematicToken);
+		return new ParserException(message, problematicToken, lexer.getLine(problematicToken.getLine()));
 	}
 
 	private ParserException createParseException(String message){
 		if (currentLine.isEmpty()){
-			return new ParserException(message, new LexerToken(TokenType.NIL, "", -1, -1));
+			return new ParserException(message, new LexerToken(TokenType.NIL, "", 0, 0), "");
 		}
-		return new ParserException(message, currentLine.get(0));
+		return new ParserException(message, currentLine.get(0), lexer.getLine(currentLine.get(0).getLine()));
 	}
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public class ASTNode implements Iterable<ASTNode> {
 
 	private Token token;
-	private List<ASTNode> children;
+	private List<ASTNode> children = new ArrayList<>();
 
 	/**
 	 * Empty constructor for making nil rooted trees.
@@ -47,7 +47,6 @@ public class ASTNode implements Iterable<ASTNode> {
 	 */
 	public ASTNode(TokenType type, ASTNode... children){
 		this.token = new Token(type);
-		this.children = new ArrayList<>();
 		Collections.addAll(this.children, children);
 	}
 
@@ -82,9 +81,6 @@ public class ASTNode implements Iterable<ASTNode> {
 	 * @param newChild given child
 	 */
 	public void addChild(ASTNode newChild){
-		if (children == null){
-			children = new ArrayList<>();
-		}
 		children.add(newChild);
 	}
 
@@ -103,9 +99,6 @@ public class ASTNode implements Iterable<ASTNode> {
 	 * @param newChild given token
 	 */
 	public void addChild(Token newChild){
-		if (children == null){
-			children = new ArrayList<>();
-		}
 		children.add(new ASTNode(newChild));
 	}
 
@@ -124,7 +117,7 @@ public class ASTNode implements Iterable<ASTNode> {
 	 * @return is this a leaf node.
 	 */
 	public boolean isLeaf(){
-		return children == null || children.isEmpty();
+		return children.isEmpty();
 	}
 
 	/**
@@ -132,9 +125,6 @@ public class ASTNode implements Iterable<ASTNode> {
 	 * @return number of children.
 	 */
 	public int getNumberOfChildren(){
-		if (children == null){
-			return 0;
-		}
 		return children.size();
 	}
 
@@ -145,27 +135,12 @@ public class ASTNode implements Iterable<ASTNode> {
 	 * @return child at given index
 	 */
 	public ASTNode getChild(int index){
-		if (children == null){
-			children = new ArrayList<>();
-		}
 		return children.get(index);
-	}
-
-	/**
-	 * Returns the last child.
-	 *
-	 * @return last child
-	 */
-	public ASTNode getLastChild(){
-		if (children == null){
-			children = new ArrayList<>();
-		}
-		return children.get(children.size() - 1);
 	}
 
 	@Override
 	public String toString(){
-		return token.toString();
+		return toStringTreeNode();
 	}
 
 	/**
