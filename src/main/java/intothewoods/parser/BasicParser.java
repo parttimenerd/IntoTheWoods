@@ -210,13 +210,14 @@ public class BasicParser extends AbstractParser {
 		ASTNode node = new ASTNode(TokenType.FUNCTION_HEADER);
 		node.addChild(typeToken);
 		node.addChild(nameToken);
-		if (currentLine.size() > 3){
-			if (currentLine.get(3).hasType(TokenType.COLON)){
-				node.addChild(parseParameterDeclarationList());
-			} else {
-				throw createParseException("Expected colon and function parameter declarations", currentLine.get(3));
-			}
-		}
+		if (currentLine.size() <= 3){
+            return node;
+        }
+        if (currentLine.get(3).hasType(TokenType.COLON)){
+            node.addChild(parseParameterDeclarationList());
+        } else {
+            throw createParseException("Expected colon and function parameter declarations", currentLine.get(3));
+        }
 		return node;
 	}
 

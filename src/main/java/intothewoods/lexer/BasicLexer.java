@@ -145,11 +145,10 @@ public class BasicLexer extends AbstractLexer {
 		int startColumn = currentColumn;
 		do {
 			readChar();
-			if (!hasEnded && !isCurrentChar('\n') && !isCurrentChar('\r')) {
-				builder.append(getChar());
-			} else {
+			if (hasEnded || isCurrentChar('\n') || isCurrentChar('\r')) {
 				break;
 			}
+            builder.append(getChar());
 		} while (true);
 		return new LexerToken(TokenType.COMMENT, builder.toString(), currentLine, startColumn);
 	}
