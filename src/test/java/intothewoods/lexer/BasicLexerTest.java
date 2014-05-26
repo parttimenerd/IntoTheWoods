@@ -57,6 +57,7 @@ public class BasicLexerTest {
 		expectToken("Lexing string failed", "\" sdfkdfgl \\\" \"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\"\"", TokenType.STRING_LITERAL);
 		expectToken("Lexing string failed", "\"\\\"\\\"\"", TokenType.STRING_LITERAL);
+		expectToken("Lexing string failed", "\"\\\\\"", TokenType.STRING_LITERAL);
 	}
 
 	@Test
