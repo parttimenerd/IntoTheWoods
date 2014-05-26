@@ -44,10 +44,10 @@ public class BasicLexerTest {
 		expectToken("Lexing float failed", "-4560.456", TokenType.FLOAT_LITERAL);
 		expectToken("Lexing float failed", "+5460.9", TokenType.FLOAT_LITERAL);
 		expectToken("Lexing float failed", "+08.09", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "+06E-90", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "+06E+90", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "-06E-0", TokenType.FLOAT_LITERAL);
-		expectToken("Lexing float failed", "06E+0", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "+06.0E-90", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "+06.19E+90", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "-06.00000E-0", TokenType.FLOAT_LITERAL);
+		expectToken("Lexing float failed", "06.23E+0", TokenType.FLOAT_LITERAL);
 	}
 
 	@Test

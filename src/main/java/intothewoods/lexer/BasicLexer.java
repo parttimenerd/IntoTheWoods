@@ -160,60 +160,52 @@ public class BasicLexer extends AbstractLexer {
 	 * @return lexed token
 	 * @throws intothewoods.lexer.LexerException syntax error
 	 * @throws java.io.IOException io error from stream
-	 * TODO: rewrite
 	 */
 	private LexerToken parseNumeric() throws IOException, LexerException {
-		StringBuilder builder = new StringBuilder(Character.toString(getChar()));
+		StringBuilder builder = new StringBuilder();
 		int startColumn = currentColumn;
-		boolean containsDot = false;
-		boolean containsExp = false;
-		boolean containsDigit = Character.isDigit(getChar());
-		do {
-			readChar();
-			if (Character.isDigit(getChar()) ||
-					(!containsDot && isCurrentChar('.')) ||
-					(!containsExp && isCurrentChar('E'))) {
-				builder.append(getChar());
-				if (Character.isDigit(getChar())) {
-					containsDigit = true;
-				}
-				if (!containsDot && isCurrentChar('.') && containsDigit) {
-					containsDot = true;
-					containsDigit = false;
-				}
-				if (!containsExp && isCurrentChar('E') && containsDigit) {
-					containsExp = true;
-					readChar();
-					if (isCurrentChar('-') || isCurrentChar('+')){
-						builder.append(getChar());
-						containsDigit = false;
-					} else if (Character.isDigit(getChar())){
-						builder.append(getChar());
-						containsDigit = true;
-					} else {
-						throw createLexerException("Invalid float literal", startColumn);
-					}
-				}
-			} else {
-				break;
-			}
-		} while (!hasEnded);
 		TokenType type;
-		if (!containsDigit){
-			throw createLexerException("Invalid numeric literal", startColumn);
-		}
-		if (containsDot || containsExp){
-			type = TokenType.FLOAT_LITERAL;
-		} else {
-			if (isCurrentChar('b')) {
-				type = TokenType.BYTE_LITERAL;
-				builder.append('b');
+		builder.append(parseInt("Expected numeric literal", startColumn, true));
+		switch (getChar()){
+			case '.':
+				type = TokenType.FLOAT_LITERAL;
+				builder.append(getChar());
 				readChar();
-			} else {
+				builder.append(parseInt("Expected float literal", startColumn, false));
+				if (isCurrentChar('E')){
+					builder.append(getChar());
+					readChar();
+					builder.append(parseInt("Expected float literal in scientific notation", startColumn, true));
+				}
+				break;
+			case 'b':
+				type = TokenType.BYTE_LITERAL;
+				builder.append(getChar());
+				readChar();
+				break;
+			default:
 				type = TokenType.INT_LITERAL;
-			}
+				break;
 		}
 		return new LexerToken(type, builder.toString(), currentLine, startColumn);
+	}
+
+	private String parseInt(String errorMsg, int startColumn, boolean allowSigned) throws IOException, LexerException {
+		StringBuilder builder = new StringBuilder();
+		if (allowSigned && (isCurrentChar('-') || isCurrentChar('+'))){
+			builder.append(getChar());
+			readChar();
+		}
+		boolean containsDigits = false;
+		while (Character.isDigit(getChar())){
+			builder.append(getChar());
+			containsDigits = true;
+			readChar();
+		}
+		if (!containsDigits){
+			throw createLexerException(errorMsg, startColumn);
+		}
+		return builder.toString();
 	}
 
 	/**
