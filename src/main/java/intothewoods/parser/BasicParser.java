@@ -210,13 +210,14 @@ public class BasicParser extends AbstractParser {
 		ASTNode node = new ASTNode(TokenType.FUNCTION_HEADER);
 		node.addChild(typeToken);
 		node.addChild(nameToken);
-		if (currentLine.size() > 3){
-			if (currentLine.get(3).hasType(TokenType.COLON)){
-				node.addChild(parseParameterDeclarationList());
-			} else {
-				throw createParseException("Expected colon and function parameter declarations", currentLine.get(3));
-			}
-		}
+		if (currentLine.size() <= 3){
+            return node;
+        }
+        if (currentLine.get(3).hasType(TokenType.COLON)){
+            node.addChild(parseParameterDeclarationList());
+        } else {
+            throw createParseException("Expected colon and function parameter declarations", currentLine.get(3));
+        }
 		return node;
 	}
 
@@ -228,25 +229,10 @@ public class BasicParser extends AbstractParser {
 	 */
 	private ASTNode parseParameterDeclarationList() throws ParserException {
 		ASTNode parameters = new ASTNode(TokenType.PARAMETER_DECL_LIST);
-		if (currentLine.size() < 3){
-			throw createParseException("Expected function header");
-		}
-		if (currentLine.size() == 3){
-			return parameters;
-		}
-		if (currentLine.size() < 6){
-			throw createParseException("Expected parameter declarations", currentLine.get(3));
-		}
 		int i = 3;
 		int paramNumber = 1;
 		while (true){
 			LexerToken lastOfLine = currentLine.get(currentLine.size() - 1);
-			if (currentLine.size() <= i){
-				throw createParseException("Expected declaration of parameter no. " + paramNumber, lastOfLine);
-			}
-			if (i == 3 && currentLine.get(i).hasNotType(TokenType.COLON)){
-				throw createParseException("Expected ':' and parameter declarations", currentLine.get(i));
-			}
 			if (i != 3 && currentLine.get(i).hasNotType(TokenType.COMMA)) {
 				throw createParseException("Expected ',' and parameter declaration", currentLine.get(i));
 			}
@@ -283,9 +269,6 @@ public class BasicParser extends AbstractParser {
 	 */
 	protected ASTNode parseFunctionCall() throws ParserException {
 		ASTNode node = new ASTNode(TokenType.FUNCTION_CALL);
-		if (currentLine.isEmpty()){
-			throw createParseException("Expected function call");
-		}
 		node.addChild(currentLine.get(0));
 		for (int i = 1; i < currentLine.size(); i++){
 			node.addChild(parseTokenAsValue(currentLine.get(i)));
@@ -302,7 +285,7 @@ public class BasicParser extends AbstractParser {
 	 * @throws ParserException parser spots a syntax error
 	 */
 	protected ASTNode parseReturnStatement() throws ParserException {
-		if (currentLine.isEmpty() || currentLine.size() > 2){
+		if (currentLine.size() > 2){
 			throw createParseException("Expected return statement");
 		}
 		ASTNode node = new ASTNode(TokenType.RETURN_STATEMENT);

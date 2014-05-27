@@ -145,12 +145,11 @@ public class BasicLexer extends AbstractLexer {
 		int startColumn = currentColumn;
 		do {
 			readChar();
-			if (!hasEnded && !isCurrentChar('\n') && !isCurrentChar('\r')) {
-				builder.append(getChar());
-			} else {
+			if (hasEnded || isCurrentChar('\n') || isCurrentChar('\r')) {
 				break;
 			}
-		} while (!hasEnded);
+            builder.append(getChar());
+		} while (true);
 		return new LexerToken(TokenType.COMMENT, builder.toString(), currentLine, startColumn);
 	}
 
@@ -169,18 +168,18 @@ public class BasicLexer extends AbstractLexer {
 		switch (getChar()){
 			case '.':
 				type = TokenType.FLOAT_LITERAL;
-				builder.append(getChar());
+				builder.append('.');
 				readChar();
 				builder.append(parseInt("Expected float literal", startColumn, false));
 				if (isCurrentChar('E')){
-					builder.append(getChar());
+					builder.append('E');
 					readChar();
 					builder.append(parseInt("Expected float literal in scientific notation", startColumn, true));
 				}
 				break;
 			case 'b':
 				type = TokenType.BYTE_LITERAL;
-				builder.append(getChar());
+				builder.append('b');
 				readChar();
 				break;
 			default:
