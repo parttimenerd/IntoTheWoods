@@ -255,6 +255,7 @@ public class BasicParser extends AbstractParser {
 				break;
 			}
 			i += 3;
+			paramNumber++;
 		}
 		return parameters;
 	}

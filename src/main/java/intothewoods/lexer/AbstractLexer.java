@@ -67,18 +67,6 @@ public abstract class AbstractLexer {
 	 * This method is the best way to create a LexerException.
 	 *
 	 * @param message error message
-	 * @param column starting column of the mismatched token
-	 * @return new lexer exception
-	 */
-	protected LexerException createLexerException(String message, int column){
-		return new LexerException(message, currentLine, column, getLine(currentLine));
-	}
-
-	/**
-	 * Create a new LexerException for the current line and column number.
-	 * This method is the best way to create a LexerException.
-	 *
-	 * @param message error message
 	 * @return new lexer exception
 	 */
 	protected LexerException createLexerException(String message){

@@ -93,7 +93,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.END_KEYWORD;
 				break;
 			default:
-				throw createLexerException("Unknown keyword", startColumn);
+				throw createLexerException("Unknown keyword");
 		}
 		return new LexerToken(type, tokenText, currentLine, startColumn);
 	}
@@ -114,21 +114,21 @@ public class BasicLexer extends AbstractLexer {
 			if (isCurrentChar('\\')) {
 				readChar();
 				if (isCurrentChar('n') || isCurrentChar('r') || isCurrentChar('t') ||
-						isCurrentChar('"') || isCurrentChar('"')) {
+						isCurrentChar('\\') || isCurrentChar('"')) {
 					builder.append(getChar());
 				} else {
-					throw createLexerException("Unsupported escape character", startColumn);
+					throw createLexerException("Unsupported escape character");
 				}
 			} else if (isCurrentChar('"')){
 				break;
 			} else if (isCurrentChar('\n')){
-				throw createLexerException("Strings mustn't contain new lines", startColumn);
+				throw createLexerException("Strings mustn't contain new lines");
 			}
 		} while (!hasEnded);
 		char lastChar = getChar();
 		String str = builder.toString();
 		if (hasEnded && lastChar != '"') {
-			throw createLexerException("Error at end of string", startColumn);
+			throw createLexerException("Error at end of string");
 		}
 		readChar();
 		return new LexerToken(TokenType.STRING_LITERAL, str, currentLine, startColumn);
@@ -164,17 +164,17 @@ public class BasicLexer extends AbstractLexer {
 		StringBuilder builder = new StringBuilder();
 		int startColumn = currentColumn;
 		TokenType type;
-		builder.append(parseInt("Expected numeric literal", startColumn, true));
+		builder.append(readInt("Expected numeric literal", true));
 		switch (getChar()){
 			case '.':
 				type = TokenType.FLOAT_LITERAL;
 				builder.append('.');
 				readChar();
-				builder.append(parseInt("Expected float literal", startColumn, false));
+				builder.append(readInt("Expected float literal", false));
 				if (isCurrentChar('E')){
 					builder.append('E');
 					readChar();
-					builder.append(parseInt("Expected float literal in scientific notation", startColumn, true));
+					builder.append(readInt("Expected float literal in scientific notation", true));
 				}
 				break;
 			case 'b':
@@ -189,7 +189,7 @@ public class BasicLexer extends AbstractLexer {
 		return new LexerToken(type, builder.toString(), currentLine, startColumn);
 	}
 
-	private String parseInt(String errorMsg, int startColumn, boolean allowSigned) throws IOException, LexerException {
+	private String readInt(String errorMsg, boolean allowSigned) throws IOException, LexerException {
 		StringBuilder builder = new StringBuilder();
 		if (allowSigned && (isCurrentChar('-') || isCurrentChar('+'))){
 			builder.append(getChar());
@@ -202,7 +202,7 @@ public class BasicLexer extends AbstractLexer {
 			readChar();
 		}
 		if (!containsDigits){
-			throw createLexerException(errorMsg, startColumn);
+			throw createLexerException(errorMsg);
 		}
 		return builder.toString();
 	}
@@ -280,7 +280,7 @@ public class BasicLexer extends AbstractLexer {
 				type = TokenType.COLON;
 				break;
 			default:
-				throw createLexerException("Illegal character", startColumn);
+				throw createLexerException("Illegal character");
 		}
 		readChar();
 		return new LexerToken(type, Character.toString(curChar), currentLine, startColumn);

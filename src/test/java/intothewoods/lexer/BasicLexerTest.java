@@ -148,32 +148,50 @@ public class BasicLexerTest {
 	@Test(expected = LexerException.class)
 	public void testInvalidStringLiteral() throws Exception {
 		runToEndOnInput("\"ABCD\"\"");
-		runToEndOnInput("\"ABCD\n\"");
 	}
 
 	@Test(expected = LexerException.class)
 	public void testInvalidStringLiteral2() throws Exception {
-		runToEndOnInput("\"\\\n\"");
+		runToEndOnInput("\"ABCD\n\"");
 	}
 
 	@Test(expected = LexerException.class)
 	public void testInvalidStringLiteral3() throws Exception {
+		runToEndOnInput("\"\\\n\"");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidStringLiteral4() throws Exception {
 		runToEndOnInput("\"\\");
 	}
 
 	@Test(expected = LexerException.class)
 	public void testInvalidIntLiteral() throws Exception {
 		runToEndOnInput("--0");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidIntLiteral2() throws Exception {
 		runToEndOnInput("+");
 	}
 
 	@Test(expected = LexerException.class)
 	public void testInvalidFloatLiteral() throws Exception {
 		runToEndOnInput("+.b");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidFloatLiteral2() throws Exception {
 		runToEndOnInput("+-0.0");
+	}
+
+	@Test(expected = LexerException.class)
+	public void testInvalidFloatLiteral3() throws Exception {
 		runToEndOnInput(".0");
+	}
+	@Test(expected = LexerException.class)
+	public void testInvalidFloatLiteral4() throws Exception {
 		runToEndOnInput(".");
-		runToEndOnInput("0E");
 	}
 
 	private void runToEndOnInput(String str) throws Exception {
